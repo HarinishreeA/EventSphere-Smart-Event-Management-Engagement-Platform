@@ -7,6 +7,7 @@ const authRoutes = require('./routes/auth.routes');
 const eventRoutes = require('./routes/event.routes');
 const rsvpRoutes = require('./routes/rsvp.routes');
 const adminRoutes = require('./routes/admin.routes');
+const attendanceRoutes = require('./routes/attendance.routes');
 const { errorHandler } = require('./middleware/error.middleware');
 
 const app = express();
@@ -31,6 +32,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/rsvp', rsvpRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/attendance', attendanceRoutes);
 
 // Error Handler Middleware
 app.use(errorHandler);

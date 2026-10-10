@@ -116,7 +116,7 @@ const AppContent = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+    <div className="min-h-screen flex flex-col bg-[#09090B] text-zinc-100 font-sans selection:bg-lime-400 selection:text-black">
       
       {/* Navigation Header */}
       <Navbar
@@ -149,14 +149,14 @@ const AppContent = () => {
               onRSVP={handleRSVP}
             />
           ) : (
-            <div className="text-center py-20 glass-card rounded-3xl p-8 max-w-lg mx-auto space-y-4 border border-amber-500/20">
+            <div className="text-center py-20 bg-[#18181B] rounded-2xl p-8 max-w-lg mx-auto space-y-4 border border-zinc-800">
               <h2 className="text-xl font-bold text-amber-400">Student Feature Only</h2>
-              <p className="text-xs text-slate-400">
-                The "My RSVPs" registration pass is reserved for student users. Administrators manage events via the Admin Portal.
+              <p className="text-xs text-zinc-400">
+                The "My RSVPs" dashboard is reserved for student users. Administrators manage events via the Admin Portal.
               </p>
               <button
                 onClick={() => setActiveTab('admin')}
-                className="px-5 py-2.5 rounded-xl font-bold text-xs bg-purple-600 hover:bg-purple-500 text-white shadow-lg"
+                className="px-5 py-2.5 rounded-xl font-semibold text-xs bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700 transition-all"
               >
                 Go to Admin Portal
               </button>
@@ -173,12 +173,12 @@ const AppContent = () => {
               onViewAttendees={(evt) => setAttendeesModalEvent(evt)}
             />
           ) : (
-            <div className="text-center py-20">
+            <div className="text-center py-20 bg-[#18181B] rounded-2xl p-8 max-w-lg mx-auto space-y-4 border border-zinc-800">
               <h2 className="text-xl font-bold text-rose-400">Access Restricted</h2>
-              <p className="text-sm text-slate-400 mt-2">You must be logged in as a Faculty/Admin to access this page.</p>
+              <p className="text-sm text-zinc-400">You must be signed in with an Administrator account to access the control panel.</p>
               <button
                 onClick={() => setActiveTab('login')}
-                className="mt-4 px-5 py-2.5 rounded-xl font-bold text-xs bg-brand-600 text-white"
+                className="px-5 py-2.5 rounded-xl font-bold text-xs bg-lime-400 text-black hover:bg-lime-300 transition-all"
               >
                 Sign In as Admin
               </button>
@@ -189,14 +189,14 @@ const AppContent = () => {
         {activeTab === 'login' && (
           <LoginPage
             onNavigateToRegister={() => setActiveTab('register')}
-            onSuccess={() => { setActiveTab('catalog'); showToast('success', 'Logged in successfully!'); }}
+            onSuccess={() => { setActiveTab('catalog'); showToast('success', 'Signed in successfully'); }}
           />
         )}
 
         {activeTab === 'register' && (
           <RegisterPage
             onNavigateToLogin={() => setActiveTab('login')}
-            onSuccess={() => { setActiveTab('catalog'); showToast('success', 'Account created successfully!'); }}
+            onSuccess={() => { setActiveTab('catalog'); showToast('success', 'Account created successfully'); }}
           />
         )}
       </main>
@@ -220,15 +220,18 @@ const AppContent = () => {
       <Toast toast={toast} onClose={() => setToast(null)} />
 
       {/* Footer */}
-      <footer className="border-t border-slate-800/80 py-8 bg-slate-950/80 mt-12 text-center text-xs text-slate-500">
+      <footer className="border-t border-zinc-800/80 py-8 bg-[#09090B] mt-16 text-center text-xs text-zinc-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>© 2026 Campus Event Manager. Built with React (Vite), Node.js, Express, MongoDB, JWT, and Socket.io.</p>
-          <div className="flex items-center gap-4 text-slate-400">
-            <button onClick={() => setActiveTab('catalog')} className="hover:text-white transition-colors">Catalog</button>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-lime-400"></span>
+            <p className="font-medium text-zinc-400">EventSphere: Smart Event Management and Engagement Platform</p>
+          </div>
+          <div className="flex items-center gap-5 text-zinc-400 font-medium">
+            <button onClick={() => setActiveTab('catalog')} className="hover:text-lime-400 transition-colors">Catalog</button>
             {isStudent && (
-              <button onClick={() => setActiveTab('my-events')} className="hover:text-white transition-colors">My RSVPs</button>
+              <button onClick={() => setActiveTab('my-events')} className="hover:text-lime-400 transition-colors">My RSVPs</button>
             )}
-            <button onClick={() => setActiveTab('admin')} className="hover:text-white transition-colors">Admin Portal</button>
+            <button onClick={() => setActiveTab('admin')} className="hover:text-lime-400 transition-colors">Admin Portal</button>
           </div>
         </div>
       </footer>

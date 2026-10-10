@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Users, UserCheck, AlertCircle, ShieldCheck, Mail, Building, Hash } from 'lucide-react';
+import { X, Users, CheckCircle2, AlertCircle, Mail, Building, Hash } from 'lucide-react';
 import API from '../services/api';
 
 const AttendeeListModal = ({ isOpen, onClose, event }) => {
@@ -30,86 +30,87 @@ const AttendeeListModal = ({ isOpen, onClose, event }) => {
   const waitlistedList = data?.waitlisted || [];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-      <div className="glass-card rounded-2xl w-full max-w-3xl max-h-[85vh] flex flex-col border border-slate-700/80 shadow-2xl p-6 relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#09090B]/85 backdrop-blur-md animate-fade-in">
+      <div className="surface-card rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col border border-[#27272A] shadow-2xl p-6 relative">
         
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
+        <div className="flex items-center justify-between border-b border-[#27272A] pb-4 mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center border border-purple-500/30">
-              <Users className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-xl bg-[#09090B] text-[#A3E635] flex items-center justify-center border border-[#27272A]">
+              <Users className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white line-clamp-1">{event.title}</h2>
-              <p className="text-xs text-slate-400 font-medium">Attendee Roster & Waitlist Management</p>
+              <h2 className="text-lg font-bold text-[#FAFAFA] line-clamp-1">{event.title}</h2>
+              <p className="text-xs text-[#A1A1AA] font-medium">Attendee Roster & Waitlist Management</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors"
+            className="p-1.5 text-[#A1A1AA] hover:text-[#FAFAFA] rounded-lg hover:bg-[#27272A] transition-colors"
+            aria-label="Close modal"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Tab Toggle */}
-        <div className="flex items-center gap-2 bg-slate-900/80 p-1.5 rounded-xl border border-slate-800 mb-4">
+        <div className="flex items-center gap-2 bg-[#09090B] p-1.5 rounded-xl border border-[#27272A] mb-4">
           <button
             onClick={() => setActiveTab('confirmed')}
-            className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+            className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${
               activeTab === 'confirmed'
-                ? 'bg-emerald-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-[#A3E635] text-[#09090B] shadow-sm'
+                : 'text-[#A1A1AA] hover:text-[#FAFAFA]'
             }`}
           >
-            <UserCheck className="w-4 h-4" />
-            Confirmed RSVPs ({confirmedList.length} / {event.capacity})
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            Confirmed Passes ({confirmedList.length} / {event.capacity})
           </button>
           
           <button
             onClick={() => setActiveTab('waitlisted')}
-            className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+            className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 ${
               activeTab === 'waitlisted'
-                ? 'bg-amber-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-amber-400 text-[#09090B] shadow-sm'
+                : 'text-[#A1A1AA] hover:text-[#FAFAFA]'
             }`}
           >
-            <AlertCircle className="w-4 h-4" />
+            <AlertCircle className="w-3.5 h-3.5" />
             Waitlist Queue ({waitlistedList.length})
           </button>
         </div>
 
         {/* List Content */}
-        <div className="flex-1 overflow-y-auto pr-1 space-y-3">
+        <div className="flex-1 overflow-y-auto pr-1 space-y-2.5">
           {loading ? (
-            <div className="text-center py-12 text-slate-400 text-sm">
+            <div className="text-center py-12 text-[#A1A1AA] text-xs">
               Loading attendee records...
             </div>
           ) : activeTab === 'confirmed' ? (
             confirmedList.length > 0 ? (
               confirmedList.map((rsvp, idx) => (
-                <div key={rsvp._id} className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between">
+                <div key={rsvp._id} className="p-3 rounded-xl bg-[#09090B] border border-[#27272A] flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 font-bold text-xs flex items-center justify-center border border-emerald-500/20">
+                    <div className="w-7 h-7 rounded-lg bg-[#18181B] text-[#A3E635] font-bold text-xs flex items-center justify-center border border-[#27272A]">
                       #{idx + 1}
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-white">{rsvp.user?.name || 'Student'}</p>
-                      <div className="flex items-center gap-3 text-xs text-slate-400 mt-0.5">
+                      <p className="text-xs font-bold text-[#FAFAFA]">{rsvp.user?.name || 'Student'}</p>
+                      <div className="flex flex-wrap items-center gap-2.5 text-[11px] text-[#A1A1AA] mt-0.5">
                         <span className="flex items-center gap-1">
-                          <Mail className="w-3 h-3 text-brand-400" />
+                          <Mail className="w-3 h-3 text-[#A3E635]" />
                           {rsvp.user?.email}
                         </span>
                         {rsvp.user?.department && (
                           <span className="flex items-center gap-1">
-                            <Building className="w-3 h-3 text-brand-400" />
+                            <Building className="w-3 h-3 text-[#A1A1AA]" />
                             {rsvp.user?.department}
                           </span>
                         )}
                         {rsvp.user?.studentId && (
                           <span className="flex items-center gap-1">
-                            <Hash className="w-3 h-3 text-brand-400" />
+                            <Hash className="w-3 h-3 text-[#A1A1AA]" />
                             ID: {rsvp.user?.studentId}
                           </span>
                         )}
@@ -117,34 +118,34 @@ const AttendeeListModal = ({ isOpen, onClose, event }) => {
                     </div>
                   </div>
 
-                  <span className="text-[11px] text-slate-400 font-medium bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
-                    RSVP'd: {new Date(rsvp.registeredAt).toLocaleDateString()}
+                  <span className="text-[10px] text-[#A1A1AA] font-medium bg-[#18181B] px-2 py-1 rounded-md border border-[#27272A] hidden sm:inline-block">
+                    RSVP: {new Date(rsvp.registeredAt).toLocaleDateString()}
                   </span>
                 </div>
               ))
             ) : (
-              <div className="text-center py-12 text-slate-400 text-sm">
-                No confirmed RSVPs yet for this event.
+              <div className="text-center py-12 text-[#A1A1AA] text-xs">
+                No confirmed registrations for this event yet.
               </div>
             )
           ) : (
             waitlistedList.length > 0 ? (
               waitlistedList.map((rsvp, idx) => (
-                <div key={rsvp._id} className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between">
+                <div key={rsvp._id} className="p-3 rounded-xl bg-[#09090B] border border-[#27272A] flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 font-bold text-xs flex items-center justify-center border border-amber-500/20">
+                    <div className="w-7 h-7 rounded-lg bg-[#18181B] text-amber-400 font-bold text-xs flex items-center justify-center border border-[#27272A]">
                       #{idx + 1}
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-white">{rsvp.user?.name || 'Student'}</p>
-                      <div className="flex items-center gap-3 text-xs text-slate-400 mt-0.5">
+                      <p className="text-xs font-bold text-[#FAFAFA]">{rsvp.user?.name || 'Student'}</p>
+                      <div className="flex flex-wrap items-center gap-2.5 text-[11px] text-[#A1A1AA] mt-0.5">
                         <span className="flex items-center gap-1">
                           <Mail className="w-3 h-3 text-amber-400" />
                           {rsvp.user?.email}
                         </span>
                         {rsvp.user?.department && (
                           <span className="flex items-center gap-1">
-                            <Building className="w-3 h-3 text-amber-400" />
+                            <Building className="w-3 h-3 text-[#A1A1AA]" />
                             {rsvp.user?.department}
                           </span>
                         )}
@@ -152,13 +153,13 @@ const AttendeeListModal = ({ isOpen, onClose, event }) => {
                     </div>
                   </div>
 
-                  <span className="text-[11px] text-amber-300 font-semibold bg-amber-950/40 px-2.5 py-1 rounded-lg border border-amber-800/40">
-                    Queue Position #{idx + 1}
+                  <span className="text-[10px] text-amber-300 font-semibold bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
+                    Queue #{idx + 1}
                   </span>
                 </div>
               ))
             ) : (
-              <div className="text-center py-12 text-slate-400 text-sm">
+              <div className="text-center py-12 text-[#A1A1AA] text-xs">
                 Waitlist is currently empty.
               </div>
             )
@@ -166,12 +167,12 @@ const AttendeeListModal = ({ isOpen, onClose, event }) => {
         </div>
 
         {/* Footer */}
-        <div className="pt-4 mt-4 border-t border-slate-800 flex justify-end">
+        <div className="pt-4 mt-4 border-t border-[#27272A] flex justify-end">
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-xl font-bold text-xs bg-slate-900 hover:bg-slate-800 text-slate-300 transition-colors"
+            className="px-4 py-1.5 rounded-xl font-semibold text-xs bg-[#09090B] hover:bg-[#27272A] text-[#FAFAFA] border border-[#27272A] transition-colors"
           >
-            Close Window
+            Close Roster
           </button>
         </div>
       </div>

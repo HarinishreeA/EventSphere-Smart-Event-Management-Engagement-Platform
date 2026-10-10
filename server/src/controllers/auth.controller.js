@@ -106,8 +106,26 @@ const getMe = async (req, res, next) => {
   }
 };
 
+// @desc    Get top student leaderboard
+// @route   GET /api/auth/leaderboard
+// @access  Private
+const getLeaderboard = async (req, res, next) => {
+  try {
+    const leaderboard = await User.find({ role: 'student' })
+      .select('name department points badges')
+      .sort({ points: -1, name: 1 })
+      .limit(10);
+
+    res.json(leaderboard);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   getMe,
+  getLeaderboard,
 };
+

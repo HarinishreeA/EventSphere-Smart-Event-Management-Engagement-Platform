@@ -40,4 +40,13 @@ const notifyAttendeeUpdate = (eventId, payload) => {
   }
 };
 
-module.exports = { initSocket, getIO, notifyAttendeeUpdate };
+const notifyAttendanceCheckin = (eventId, payload) => {
+  if (ioInstance) {
+    // Broadcast check-in event to event room and globally
+    ioInstance.to(`event_${eventId}`).emit('attendance_checkin', payload);
+    ioInstance.emit('global_attendance_update', payload);
+  }
+};
+
+module.exports = { initSocket, getIO, notifyAttendeeUpdate, notifyAttendanceCheckin };
+

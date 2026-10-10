@@ -13,12 +13,33 @@ const getAdminStats = async (req, res, next) => {
     const totalWaitlist = await RSVP.countDocuments({ status: 'waitlisted' });
     const totalStudents = await User.countDocuments({ role: 'student' });
 
+    const totalCheckedIn = await RSVP.countDocuments({ checkedIn: true, status: 'confirmed' });
+    const rawRate = totalRSVPs > 0 ? (totalCheckedIn / totalRSVPs) * 100 : 0;
+    const attendanceRate = Number(rawRate.toFixed(1));
+
+    const categoryAgg = await Event.aggregate([
+      {
+        $group: {
+          _id: '$category',
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const categoryBreakdown = categoryAgg.map((item) => ({
+      category: item._id,
+      count: item.count,
+    }));
+
     res.json({
       totalEvents,
       upcomingEvents,
       totalRSVPs,
       totalWaitlist,
       totalStudents,
+      totalCheckedIn,
+      attendanceRate,
+      categoryBreakdown,
     });
   } catch (error) {
     next(error);

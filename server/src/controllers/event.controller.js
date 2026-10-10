@@ -1,5 +1,6 @@
 const Event = require('../models/Event');
 const RSVP = require('../models/RSVP');
+const { sendEventCancellationEmail } = require('../services/email.service');
 
 // @desc    Get paginated events with optional filters & search
 // @route   GET /api/events
@@ -133,6 +134,9 @@ const updateEvent = async (req, res, next) => {
 
     const { title, description, category, date, time, location, organizer, capacity, status } = req.body;
 
+    const previousStatus = event.status;
+    const isNowCancelled = status === 'cancelled' && previousStatus !== 'cancelled';
+
     if (title) event.title = title;
     if (description) event.description = description;
     if (category) event.category = category;
@@ -150,6 +154,25 @@ const updateEvent = async (req, res, next) => {
     }
 
     const updatedEvent = await event.save();
+
+    // If event was just cancelled, notify all confirmed and waitlisted students (non-blocking)
+    if (isNowCancelled) {
+      try {
+        const affectedRSVPs = await RSVP.find({
+          event: event._id,
+          status: { $in: ['confirmed', 'waitlisted'] },
+        }).populate('user', 'name email');
+
+        affectedRSVPs.forEach((rsvpItem) => {
+          if (rsvpItem.user) {
+            sendEventCancellationEmail(rsvpItem.user, updatedEvent);
+          }
+        });
+      } catch (emailErr) {
+        console.error('[Event Controller] Failed to send cancellation emails:', emailErr.message);
+      }
+    }
+
     res.json(updatedEvent);
   } catch (error) {
     next(error);

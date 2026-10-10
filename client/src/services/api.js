@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'https://campus-event-management-3vvh.onrender.com/api',
+  baseURL: import.meta.env.VITE_API_URL || '/api',
 });
 
 // Interceptor to attach Authorization Bearer token to all requests

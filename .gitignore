@@ -16,3 +16,8 @@ uploads/
 # OS files
 .DS_Store
 Thumbs.db
+# Temporary Vite files
+client/vite.config.js.timestamp-*.mjs
+
+# Temporary Vite files
+client/vite.config.js.timestamp-*.mjs
