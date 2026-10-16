@@ -1,31 +1,63 @@
-const nodemailer = require('nodemailer');
+// ─── Resend SDK ────────────────────────────────────────────────────────────────
+// Render Free blocks outbound SMTP. All email delivery goes through the Resend
+// HTTPS API instead. Set RESEND_API_KEY in your environment variables.
+// Note: SMTP_HOST / SMTP_USER / SMTP_PASS are no longer used.
+const { Resend } = require('resend');
 
-// Helper to create transport instance dynamically based on environment variables
-const createTransporter = () => {
-  const host = process.env.SMTP_HOST;
-  const port = parseInt(process.env.SMTP_PORT || '587', 10);
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
+// ─── Sender address ───────────────────────────────────────────────────────────
+// Set EMAIL_FROM in your environment to a verified sender address or domain.
+//
+// IMPORTANT — Resend sandbox restriction:
+// If EMAIL_FROM is not set, this falls back to Resend's built-in onboarding
+// sender (onboarding@resend.dev). That address can ONLY deliver to the single
+// email address that owns the Resend account. It cannot send to arbitrary
+// recipients. To send to any address, verify a domain at resend.com/domains
+// and set EMAIL_FROM to an address on that domain, e.g.:
+//   EMAIL_FROM="EventSphere <noreply@yourdomain.com>"
+const defaultFrom = process.env.EMAIL_FROM || 'EventSphere <onboarding@resend.dev>';
 
-  if (host && user && pass) {
-    return nodemailer.createTransport({
-      host,
-      port,
-      secure: port === 465,
-      auth: { user, pass },
-    });
+// ─── Resend client ────────────────────────────────────────────────────────────
+// The client is instantiated inside sendViaResend() — NOT at module scope.
+// Reason: new Resend(undefined) throws synchronously, which would crash every
+// test suite at require() time (tests run without a real API key).
+// Instantiating lazily inside the function keeps the module safely loadable
+// in test environments while still working correctly in production.
+
+/**
+ * Internal helper — sends one email via the Resend HTTPS API.
+ * Throws a descriptive Error if RESEND_API_KEY is absent or if Resend
+ * returns an error in its response object.
+ *
+ * @param {string} to        - Recipient email address
+ * @param {string} subject   - Email subject line
+ * @param {string} html      - Full HTML body
+ */
+const sendViaResend = async (to, subject, html) => {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error(
+      '[Email Service] RESEND_API_KEY is not set. Add it to your environment variables.'
+    );
   }
 
-  // Fallback for dev/testing when SMTP environment variables are not set
-  return {
-    sendMail: async (mailOptions) => {
-      console.log(`[Email Service Dev Fallback] Email to ${mailOptions.to} standard dispatch skipped (No active SMTP credentials configured). Subject: "${mailOptions.subject}"`);
-      return { messageId: `mock-${Date.now()}` };
-    },
-  };
-};
+  // Instantiate here (after the key check) so the module can be safely
+  // require()'d in test environments that have no API key configured.
+  const resend = new Resend(process.env.RESEND_API_KEY);
 
-const defaultFrom = process.env.EMAIL_FROM || '"EventSphere" <noreply@eventsphere.edu>';
+  const { data, error } = await resend.emails.send({
+    from: defaultFrom,
+    to: [to],
+    subject,
+    html,
+  });
+
+  if (error) {
+    throw new Error(
+      `[Email Service] Resend API returned an error: ${error.message || JSON.stringify(error)}`
+    );
+  }
+
+  console.log(`[Email Service] Email accepted by Resend. id=${data?.id} to=${to} subject="${subject}"`);
+};
 
 /**
  * Send RSVP confirmation email to student
@@ -37,7 +69,6 @@ const sendRSVPConfirmationEmail = async (user, event, rsvp) => {
   try {
     if (!user || !user.email) return;
 
-    const transporter = createTransporter();
     const eventDateStr = event.date ? new Date(event.date).toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
@@ -101,14 +132,14 @@ const sendRSVPConfirmationEmail = async (user, event, rsvp) => {
       </html>
     `;
 
-    await transporter.sendMail({
-      from: defaultFrom,
-      to: user.email,
-      subject: `[EventSphere] RSVP Confirmed: ${event.title}`,
-      html: htmlContent,
-    });
+    await sendViaResend(
+      user.email,
+      `[EventSphere] RSVP Confirmed: ${event.title}`,
+      htmlContent
+    );
   } catch (error) {
-    // Non-blocking log as required by rule #6
+    // Non-blocking: log the real Resend error but do not let email failure
+    // roll back or reject the RSVP that already succeeded in the database.
     console.error(`[Email Service] Failed to send RSVP confirmation email to ${user?.email}:`, error.message);
   }
 };
@@ -122,7 +153,6 @@ const sendWaitlistEmail = async (user, event) => {
   try {
     if (!user || !user.email) return;
 
-    const transporter = createTransporter();
     const eventDateStr = event.date ? new Date(event.date).toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
@@ -180,14 +210,14 @@ const sendWaitlistEmail = async (user, event) => {
       </html>
     `;
 
-    await transporter.sendMail({
-      from: defaultFrom,
-      to: user.email,
-      subject: `[EventSphere] Waitlist Confirmation: ${event.title}`,
-      html: htmlContent,
-    });
+    await sendViaResend(
+      user.email,
+      `[EventSphere] Waitlist Confirmation: ${event.title}`,
+      htmlContent
+    );
   } catch (error) {
-    // Non-blocking log as required by rule #6
+    // Non-blocking: log the real Resend error but do not let email failure
+    // roll back or reject the waitlist entry that already succeeded.
     console.error(`[Email Service] Failed to send waitlist email to ${user?.email}:`, error.message);
   }
 };
@@ -201,7 +231,6 @@ const sendEventCancellationEmail = async (user, event) => {
   try {
     if (!user || !user.email) return;
 
-    const transporter = createTransporter();
     const eventDateStr = event.date ? new Date(event.date).toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
@@ -259,13 +288,14 @@ const sendEventCancellationEmail = async (user, event) => {
       </html>
     `;
 
-    await transporter.sendMail({
-      from: defaultFrom,
-      to: user.email,
-      subject: `[EventSphere] Event Cancelled: ${event.title}`,
-      html: htmlContent,
-    });
+    await sendViaResend(
+      user.email,
+      `[EventSphere] Event Cancelled: ${event.title}`,
+      htmlContent
+    );
   } catch (error) {
+    // Non-blocking: log the real Resend error but do not let email failure
+    // roll back or reject the cancellation that already succeeded.
     console.error(`[Email Service] Failed to send event cancellation email to ${user?.email}:`, error.message);
   }
 };
